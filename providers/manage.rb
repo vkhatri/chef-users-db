@@ -245,10 +245,15 @@ end
 def manage_group_members
   # Group Users Membership for node.groups
   (@create_groups - @delete_groups).each do|group_name|
-    group_members = @group_members_db[group_name] - @delete_users
+    group_members = @group_members_db[group_name] ? (@group_members_db[group_name] - @delete_users) : []
+    group_info = @groups_db[group_name]
+
+    fail "group=#{group_name}, group not found in data bag" unless group_info
+
     group group_name do
       members group_members
-    end unless group_members.nil?
+      only_if { !group_members.empty? && group_info['action'] != 'delete' }
+    end
   end
 end
 
