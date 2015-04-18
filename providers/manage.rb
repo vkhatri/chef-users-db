@@ -116,7 +116,7 @@ def create_group
       gid group_info['id']
       system true if group_info['system']
       append true
-      action :create
+      action group_info['action'] || :create
     end
   end
 end
