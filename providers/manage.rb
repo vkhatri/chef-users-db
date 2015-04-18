@@ -162,7 +162,7 @@ def create_user
     if user_name == 'root'
       user user_name do
         supports manage_home: false
-        password user_info['user_password'] if user_info['user_password']
+        password user_info['password'] if user_info['password']
         action :manage
       end
 
@@ -185,12 +185,12 @@ def create_user
           user_login_shell = '/sbin/nologin'
         end
       else
-        user_login_shell  = user_info['user_login_shell'] || '/bin/bash'
+        user_login_shell  = user_info['login_shell'] || node['usersdb']['default_shell']
       end
 
       user user_name do
         supports manage_home: true if user_info['manage_home'] || node['usersdb']['manage_home']
-        comment user_info['full_name']
+        comment user_info['full_name'] || user_name
         gid user_info['group']
         password user_info['password'] if user_info['password']
         uid user_info['id']
