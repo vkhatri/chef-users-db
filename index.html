@@ -1,0 +1,331 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Chef Users by vkhatri</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Chef Users</h1>
+        <p>Chef Cookbook to Manage Users/Groups</p>
+
+        <p class="view"><a href="https://github.com/vkhatri/chef-users-db">View the Project on GitHub <small>vkhatri/chef-users-db</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/vkhatri/chef-users-db/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/vkhatri/chef-users-db/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/vkhatri/chef-users-db">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="usersdb-cookbook" class="anchor" href="#usersdb-cookbook" aria-hidden="true"><span class="octicon octicon-link"></span></a>usersdb Cookbook</h1>
+
+<p>This is a <a href="https://www.chef.io/">Chef</a> cookbook to manage Users, Groups and Group Membership on Linux platform using node attribute and LWRP.</p>
+
+<h2>
+<a id="repository" class="anchor" href="#repository" aria-hidden="true"><span class="octicon octicon-link"></span></a>Repository</h2>
+
+<p><a href="https://github.com/vkhatri/chef-users-db">https://github.com/vkhatri/chef-users-db</a></p>
+
+<h2>
+<a id="recipes" class="anchor" href="#recipes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Recipes</h2>
+
+<ul>
+<li>
+<code>usersdb::default</code> - default recipe (required for run_list)</li>
+</ul>
+
+<h2>
+<a id="data-bag-items" class="anchor" href="#data-bag-items" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Bag Items</h2>
+
+<p>All Users and Groups information must exists in a Databag <code>node['usersdb']['databag']</code>.</p>
+
+<p>Below Databag items are required for this cookbook and must exists.</p>
+
+<ul>
+<li>groups</li>
+<li>users</li>
+<li>group_members</li>
+</ul>
+
+<blockquote>
+<blockquote>
+<p>Note: All user, group &amp; group members information is defined in data bag items, node attribute or lwrp can only create or delete a user / group.</p>
+</blockquote>
+</blockquote>
+
+<h3>
+<a id="databag-item---groups" class="anchor" href="#databag-item---groups" aria-hidden="true"><span class="octicon octicon-link"></span></a>Databag Item - groups</h3>
+
+<p>Databag item <code>groups</code> contains information about <strong>groups</strong>. All groups infromations are stored as a <code>Hash</code> under attribute <code>users</code> as shown below.</p>
+
+<pre><code>{
+  "id": "groups",
+  "description": "Groups List",
+  "groups": {
+    "failsafe": {
+      "id": 2000
+    },
+    "foo": {
+      "id": 2001
+    },
+    "dev": {
+      "id": 2002,
+      "system": true
+      "action": "delete"
+    }
+  }
+}
+</code></pre>
+
+<p>Below attributes are supported for a group:</p>
+
+<ul>
+<li>id (required) - group id</li>
+<li>action (optional, default: <code>create</code>) - action for group # options: create, delete, ignore</li>
+<li>system (optional, default: <code>false</code>) - whether to create a system group # options: true, false, null</li>
+</ul>
+
+<h3>
+<a id="databag-item---users" class="anchor" href="#databag-item---users" aria-hidden="true"><span class="octicon octicon-link"></span></a>Databag Item - users</h3>
+
+<p>Databag item <code>users</code> contains information about <strong>users</strong>. All users infromations are stored as a <code>Hash</code> under attribute <code>groups</code> as shown below.</p>
+
+<pre><code>{
+  "id": "users",
+  "description": "Users List",
+  "users": {
+    "failsafe": {
+      "id": 2000
+    },
+    "foo": {
+      "password": "$1$2koxPft9$tLyHD6KFEoHvr8BDxhfBk0"
+      "full_name": "Foo User",
+      "id": 2001,
+      "group": "foo",
+      "login_shell": "/bin/customshell",
+      "home_directory": "/mnt/foo",
+      "manage_home": true,
+      "public_keys": [
+        "ssh-rsa AAAA….z remoteuser"
+      ]
+    },
+    "app": {
+      "full_name": "Service App",
+      "id": 2002,
+      "group": "app",
+      "system": true,
+      "action": "delete"
+    }
+  }
+}
+</code></pre>
+
+<pre><code>Note: user password must be a hash, you can use openssl to generate a linux user password hash.
+
+$ openssl passwd -1 "PASSWORD"
+</code></pre>
+
+<p>Below attributes are supported for a group:</p>
+
+<ul>
+<li>id (required) - user id</li>
+<li>group (required) - user primary group</li>
+<li>action (optional, default: <code>create</code>) - action for user # options: create, delete, ignore</li>
+<li>system (optional, default: <code>false</code>) - whether to create a system user # options: true, false, null</li>
+<li>password (optional, default: <code>nil</code>) - user password hash</li>
+<li>full_name (optional, default: <code>user name</code>) - user full name</li>
+<li>login_shell (optional, default: <code>node['usersdb']['default_shell']</code>) - user login shell</li>
+<li>home_directory (optional, default: <code>node['usersdb']['default_home']/#{user}</code>) - user home directory</li>
+<li>manage_home (optional, default: <code>node['usersdb']['manage_home']</code>) - whether to manage user home directory</li>
+<li>public_keys (optional, default: <code>nil</code>) - adds list of user ssh public key to use <code>$HOME/.ssh/authorized_keys</code> file if attribute <code>node['usersdb']['manage_ssh_dir']</code> and <code>node['usersdb']['manage_authorized_keys']</code> is set</li>
+</ul>
+
+<h3>
+<a id="databag-item---group_members" class="anchor" href="#databag-item---group_members" aria-hidden="true"><span class="octicon octicon-link"></span></a>Databag Item - group_members</h3>
+
+<p>Databag item <code>group_members</code> contains information about <strong>group members</strong>. All groups, members informations are stored as an <code>Array</code> under attribute <code>group_members</code> as shown below.</p>
+
+<pre><code>{
+  "id": "group_members",
+  "description": "Groups Members List",
+  "group_members": {
+    "foo": [
+      "foo"
+    ],
+    "dev": [
+      "dev",
+      "app"
+    ],
+    "failsafe": [
+      "failsafe"
+    ]
+  }
+}
+</code></pre>
+
+<p>Note: While deleting an user, make sure to delete the user from this Databag item. A Group</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>This cookbook can be used either with limited LWRP or using node attributes.</p>
+
+<blockquote>
+<blockquote>
+<p>Note: All user, group &amp; group members information is defined in data bag items, node attribute or lwrp can only create or delete a user / group.</p>
+</blockquote>
+</blockquote>
+
+<h3>
+<a id="add-group-and-group-members" class="anchor" href="#add-group-and-group-members" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add Group and Group Members</h3>
+
+<p><em>Using LWRP</em></p>
+
+<pre><code>usersdb_group group_name do
+end
+</code></pre>
+
+<p><em>Using Node Atrbitute - node['groups']</em></p>
+
+<pre><code>  "default_attributes": {
+    "groups": {
+      "foo": {},
+      "dev": {},
+      "failsafe": {}
+  }
+</code></pre>
+
+<h3>
+<a id="remove-group-and-group-members" class="anchor" href="#remove-group-and-group-members" aria-hidden="true"><span class="octicon octicon-link"></span></a>Remove Group and Group Members</h3>
+
+<p><em>Using LWRP</em></p>
+
+<pre><code>usersdb_group group_name do
+  action :delete
+end
+</code></pre>
+
+<p><em>Using Node Atrbitute - node['groups']</em></p>
+
+<pre><code>  "default_attributes": {
+    "groups": {
+      "foo": {
+        "action": "delete"
+      },
+      "dev": {
+        "action": "delete"
+      }
+  }
+</code></pre>
+
+<h3>
+<a id="add-user" class="anchor" href="#add-user" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add User</h3>
+
+<p><em>Using LWRP</em></p>
+
+<pre><code>usersdb_user user_name do
+end
+</code></pre>
+
+<p><em>Using Node Atrbitute - node['groups']</em></p>
+
+<pre><code>  "default_attributes": {
+    "users": {
+      "foo": {},
+      "dev": {},
+      "failsafe": {}
+  }
+</code></pre>
+
+<h3>
+<a id="delete-user" class="anchor" href="#delete-user" aria-hidden="true"><span class="octicon octicon-link"></span></a>Delete User</h3>
+
+<p><em>Using LWRP</em></p>
+
+<pre><code>usersdb_user user_name do
+  action :delete
+end
+</code></pre>
+
+<p><em>Using Node Atrbitute - node['groups']</em></p>
+
+<pre><code>  "default_attributes": {
+    "users": {
+      "foo": {
+        "action": "delete"
+      },
+      "dev": {
+        "action": "delete"
+      }
+  }
+</code></pre>
+
+<h2>
+<a id="attributes" class="anchor" href="#attributes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Attributes</h2>
+
+<ul>
+<li><p><code>default['usersdb']['disable_cookbook']</code> (default: <code>false</code>): ignore user/group management</p></li>
+<li><p><code>default['usersdb']['manage_ssh_dir']</code> (default: <code>true</code>): whether to create $HOME/.ssh directory</p></li>
+<li><p><code>default['usersdb']['manage_authorized_keys']</code> (default: <code>true</code>): whether to add user ssh keys to $HOME/.ssh/authorized_keys from data bag</p></li>
+<li><p><code>default['usersdb']['manage_home']</code> (default: <code>true</code>): whether to manage user home $HOME directory</p></li>
+<li><p><code>default['usersdb']['default_home']</code> (default: <code>/home</code>): user $HOME parent directory</p></li>
+<li><p><code>default['usersdb']['databag']</code> (default: <code>usersdb</code>): databag name</p></li>
+<li><p><code>default['usersdb']['users']</code> (default: <code>{}</code>): users Hash node attribute</p></li>
+<li><p><code>default['usersdb']['groups']</code> (default: <code>{}</code>): groups Hash node attribute</p></li>
+</ul>
+
+<h2>
+<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork the repository on Github</li>
+<li>Create a named feature branch (like <code>add_component_x</code>)</li>
+<li>Write your change</li>
+<li>Write tests for your change (if applicable)</li>
+<li>Run the tests (<code>rake</code>), ensuring they all pass</li>
+<li>Write new resource/attribute description to <code>README.md</code>
+</li>
+<li>Write description about changes to PR</li>
+<li>Submit a Pull Request using Github</li>
+</ol>
+
+<h2>
+<a id="copyright--license" class="anchor" href="#copyright--license" aria-hidden="true"><span class="octicon octicon-link"></span></a>Copyright &amp; License</h2>
+
+<p>Authors:: Virender Khatri and <a href="https://github.com/vkhatri/chef-users-db/graphs/contributors">Contributors</a></p>
+
+<pre>
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+</pre>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/vkhatri">vkhatri</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
